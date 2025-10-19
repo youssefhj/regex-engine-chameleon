@@ -3,13 +3,13 @@ class Automaton:
     Automaton is a model of state machine
 
     Helps in:
-        (1) Defining an d
-        (2) Check if the d an epsilon-NFA, NFA or DFA
+        (1) Defining an automaton
+        (2) Check if the automaton an epsilon-NFA, NFA or DFA
         (3) Converting epsilon-NFA ---To---> NFA ---To---> DFA
     """
     def __init__(self, alphabet: set = None, init_states: set = None, final_states: set = None, states: set = None, transitions: dict = None) -> None:
         """
-        Initialize the state of d
+        Initialize the state of automaton
 
         :param alphabet: Symbols knows by the automate
         :param init_states: The starting states
@@ -26,9 +26,9 @@ class Automaton:
 
     def is_epsilon_NFA(self) -> bool:
         """
-        Checks the existing of epsilon transition on the given d
+        Checks the existing of epsilon transition on the given automaton
 
-        :return: True if the d is an epsilon-NFA
+        :return: True if the automaton is an epsilon-NFA
                  False otherwise
         """
         for _, symbol in self.transitions:
@@ -40,10 +40,10 @@ class Automaton:
     def is_NFA(self) -> bool:
         """
         Checks if there is multiple transition
-        with the same symbol from the same source state on the given d
+        with the same symbol from the same source state on the given automaton
         (i.e. (state_i, `symbol`, state_j) and (state_i, `symbol`, state_k))
 
-        :return: True if the d is an NFA
+        :return: True if the automaton is an NFA
                  False otherwise
         """
         if self.is_epsilon_NFA() or len(self.init_states) > 1:
@@ -57,10 +57,10 @@ class Automaton:
 
     def is_DFA(self) -> bool:
         """
-        Checks if the given d is deterministic
+        Checks if the given automaton is deterministic
         (i.e. foreach state there is one transition with symbol_X to other ones)
 
-        :return: True if the d is an NFA
+        :return: True if the automaton is an NFA
                  False otherwise
         """
         return not self.is_NFA()
@@ -85,10 +85,10 @@ class Automaton:
 
         :param state: Some state
         :return: Set for all epsilon* transition from state `state`
-        :raise: Exception in case state not existing in the d definition
+        :raise: Exception in case state not existing in the automaton definition
         """
         if state not in self.states:
-            raise Exception(f'{state} not existing in definition of d')
+            raise Exception(f'{state} not existing in definition of automaton')
 
         return self.__go_recursion_epsilon_closure_of_state(state)
 
@@ -124,7 +124,7 @@ class Automaton:
         # Get all transitions of the dependency state
         dependency_state_transitions = list(filter(lambda state_and_symbol: state_and_symbol[0] == dependency_state, self.transitions))
         other_possible_transitions = {}
-        transitions_copy = self.transitions.copy() # Making copy to avoid changing the original transitions for the given d
+        transitions_copy = self.transitions.copy() # Making copy to avoid changing the original transitions for the given automaton
 
         # Initialization with transitions for target state
         for state, symbol in transitions_copy:
@@ -170,7 +170,7 @@ class Automaton:
 
     def eNFA_to_NFA(self) -> 'Automaton':
         """
-        Convert d from epsilon-NFA to NFA
+        Convert automaton from epsilon-NFA to NFA
 
         :return: New Automaton
         """
@@ -210,7 +210,7 @@ class Automaton:
 
     def NFA_to_DFA(self) -> 'Automaton':
         """
-        Convert d from NFA to DFA
+        Convert automaton from NFA to DFA
 
         :return: New Automaton
         """
@@ -218,9 +218,9 @@ class Automaton:
             self.eNFA_to_NFA()
 
         if self.is_NFA():
-            new_transitions = {} # This the transitions for the d after determinization
-            new_states = set() # The new states for the new d
-            new_final_states = set() # The new final state for the new d
+            new_transitions = {} # This the transitions for the automaton after determinization
+            new_states = set() # The new states for the new automaton
+            new_final_states = set() # The new final state for the new automaton
             states_already_processed = [] # Track the states that already processed
             states_needs_processing = [self.init_states]
             name_mapper = {} # Help to give new name to state after determinization
@@ -266,7 +266,7 @@ class Automaton:
             self.states = new_states
 
             # We simply map each new state with its corresponding number
-            # Just to simplify thing, its the same d it recognized the same language as previous
+            # Just to simplify thing, its the same automaton it recognized the same language as previous
             for state, symbol in new_transitions:
                 self.transitions[(name_mapper[state], symbol)] = {name_mapper[new_transitions[(state, symbol)]]}
 
