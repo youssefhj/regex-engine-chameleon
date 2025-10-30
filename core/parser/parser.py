@@ -2,96 +2,186 @@ from core.lexer.tokens import TokenType
 from core.parser.tree.concat_node import ConcatNode
 from core.parser.tree.kleen_node import KleeneNode
 from core.parser.tree.literal_node import LiteralNode
+from core.parser.tree.pipe_node import PipeNode
 
 
 class Parser:
     """
     Parse class encapsulate all necessary functionality for Syntax Analysis
     """
-    pos = 0
-    ll = 0
-    tokens = None
-    ast_stack = []
-    ast = None
+    tokens = []
+    pos, ll = 0, 0
 
     @staticmethod
     def parse(tokens: list):
         """
+        Syntax Analyzer that parse incoming tokens, and generate AST
 
-        :param tokens:
-        :return:
+        :param tokens: List of tokens
+        :return: Abstract Syntax Tree
         :raise: Exception in case parsing error
         """
-        # Regular Expression Grammar
-        # REGEX -> LITERAL CONCAT
-        # CONCAT -> KLEENE REGEX | KLEENE |  epsilon
-        # LITERAL -> [a-zA-Z]
-        # KLEENE -> '*' | epsilon
-
+        #== My REGEX Grammar
+        # EXP     -> TERM SUBEXP
+        # SUBEXP  -> `|` TERM SUBEXP | ε
+        # TERM    -> FACTOR SUBTERM
+        # SUBTERM -> * FACTOR SUBTERM | FACTOR SUBTERM | * | ε
+        # FACTOR  -> literal
         Parser.ll = len(tokens)
+        if Parser.ll <= 0: raise Exception('ERROR: Empty tokens list')
+
         Parser.tokens = tokens
+        Parser.pos = 0
 
-        if Parser.__regex() == True:
-            # Build the AST Tree
-            i = 0
-            while i + 1 < len(Parser.ast_stack):
-                if i == 0:
-                    Parser.ast = Parser.ast_stack[i]
-                Parser.ast = ConcatNode(Parser.ast, Parser.ast_stack[i + 1])
-                i += 1
-
-            return Parser.ast
-        else:
-            raise Exception(f'Error in parsing')
+        return Parser.__exp()
 
     @staticmethod
-    def __regex():
+    def __exp():
         """
+        Handles the axiome rule
 
-        :return:
+        :return: Abstract Syntax Tree
         """
-        if Parser.ll == 0:
-            return False
+        term = Parser.__term()
 
+        ast = term
+
+        sub_exp = Parser.__sub_exp()
+        if sub_exp != '':
+            ast = PipeNode(term, sub_exp)
+
+        return ast
+
+    @staticmethod
+    def __sub_exp():
+        """
+        Handles expression with pipe `|` operator
+
+        :return: PipeNode or ε
+        """
+        if Parser.__peek() is TokenType.T_PIPE:
+            Parser.__eat()
+
+            term = Parser.__term()
+            sub_exp = Parser.__sub_exp()
+
+            if sub_exp == '':
+                return term
+
+            return PipeNode(term, sub_exp)
+
+        return ''
+
+    @staticmethod
+    def __term():
+        """
+        Handles the Kleene-closure `*` if exist
+
+        :return: ConcatNode, KleeneNode, or LiteralNode
+        :raise: Exception in case broken rule
+        """
         if Parser.pos >= Parser.ll:
-            return True
+            raise Exception(f'ERROR_RULE_VIOLATED: we expect a literal at the end')
 
-        if Parser.__literal():
-            literal_val = Parser.tokens[Parser.pos].value
-            Parser.ast_stack.append(LiteralNode(literal_val))
-            Parser.pos += 1
+        factor = Parser.__factor()
+        if factor is None:
+            raise Exception(f'ERROR_RULE_VIOLATED: we expect a literal at position {Parser.pos + 1}')
 
-            return Parser.__concat()
+        sub_term = Parser.__sub_term()
 
-        return False
+        if isinstance(sub_term, tuple):
+            if sub_term[0] == '*':
+                return ConcatNode(KleeneNode(factor), sub_term[1])
+        elif sub_term == '':
+            return factor
+        elif sub_term == '*':
+            return KleeneNode(factor)
+
+        return ConcatNode(factor, sub_term)
 
     @staticmethod
-    def __concat():
+    def __sub_term():
+        """
+        Handles the Kleene-closure with its sub terms if exist
+
+        :return: ConcatNode, KleeneNode, LiteralNode, *,
+                (*, ConcatNode), (*, KleeneNode), (*, LiteralNode), or ε
+        :raise: Exception in case broken rule
+        """
+        if Parser.pos >= Parser.ll:
+            return ''
+
+        if Parser.__peek() is TokenType.T_KLEENE_CLOSURE:
+            Parser.__eat()
+            if Parser.pos >= Parser.ll:
+                return '*'
+
+            factor = Parser.__factor()
+            if factor is None:
+                return '*'
+
+            sub_term = Parser.__sub_term()
+            if isinstance(sub_term, tuple):
+                if sub_term[0] == '*':
+                    return '*', ConcatNode(KleeneNode(factor), sub_term[1])
+            elif sub_term == '':
+                return '*', factor
+            elif sub_term == '*':
+                return '*', KleeneNode(factor)
+
+            return '*', ConcatNode(factor, sub_term)
+        elif Parser.__peek() is TokenType.T_LITERAL:
+            factor = Parser.__factor()
+            if factor is None:
+                raise Exception(f'ERROR_RULE_VIOLATED: we expect a literal at position {Parser.pos + 1}')
+
+            sub_term = Parser.__sub_term()
+            if isinstance(sub_term, tuple):
+                if sub_term[0] == '*':
+                    return ConcatNode(KleeneNode(factor), sub_term[1])
+            elif sub_term == '':
+                return factor
+            elif sub_term == '*':
+                return KleeneNode(factor)
+
+            return ConcatNode(factor, sub_term)
+
+        return ''
+
+    @staticmethod
+    def __factor():
+        """
+        Check if the current token is literal
+
+        :return: LiteralNode if its valid
+                 Otherwise None
+        """
+        token_val = Parser.tokens[Parser.pos].value
+
+        if Parser.__peek() is TokenType.T_LITERAL:
+            Parser.__eat()
+            return LiteralNode(token_val)
+
+        return None
+
+    @staticmethod
+    def __peek():
+        """
+        Make a look on the current token,
+        and does not touch the cursor
+
+        :return: The current token
+        """
         if Parser.pos < Parser.ll:
-            if Parser.__kleene():
-                literal = Parser.ast_stack.pop()
-                Parser.ast_stack.append(KleeneNode(literal))
+            return Parser.tokens[Parser.pos].type
 
-                Parser.pos += 1
-
-                if Parser.pos >= Parser.ll:
-                    return True
-
-            return Parser.__regex()
-
-        return True
-
+        return None
 
     @staticmethod
-    def __literal():
-        if Parser.tokens[Parser.pos].type is TokenType.T_LITERAL:
-            return True
+    def __eat():
+        """
+        Consume the current by incrementing the cursor
 
-        return False
-
-    @staticmethod
-    def __kleene():
-        if Parser.tokens[Parser.pos].type is TokenType.T_KLEENE_CLOSURE:
-            return True
-
-        return False
+        :return: void
+        """
+        Parser.pos += 1

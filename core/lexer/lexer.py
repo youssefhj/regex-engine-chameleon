@@ -18,6 +18,8 @@ class Lexer:
         for c in regex:
             if c == '*':
                 tokens.append(Token(TokenType.T_KLEENE_CLOSURE, '*'))
+            elif c == '|':
+                tokens.append(Token(TokenType.T_PIPE, '|'))
             else:
                 tokens.append(Token(TokenType.T_LITERAL, c))
 

@@ -3,8 +3,10 @@ from copy import copy
 from core.automaton import Automaton
 from core.lexer.lexer import Lexer
 from core.parser.parser import Parser
+from core.parser.tree.concat_node import ConcatNode
 from core.parser.tree.kleen_node import KleeneNode
 from core.parser.tree.literal_node import LiteralNode
+from core.parser.tree.pipe_node import PipeNode
 
 
 class Regex:
@@ -49,7 +51,7 @@ class Regex:
         :param transitions: Set of transitions
         :param state: A state
         :param symbol: Symbol from alphabet
-        :return:
+        :return: Set of state
         """
         return copy(transitions[(state, symbol)])
 
@@ -81,14 +83,20 @@ class Regex:
 
         :param node: Node of the tree
         :return: Epsilon-NFA
+        :raise: Exception for unknown AST node
         """
         automaton = Automaton()
+
         if isinstance(node, LiteralNode):
             return Regex.__construct_automaton_from_literal_node(node, automaton)
         elif isinstance(node, KleeneNode):
             return Regex.__construct_automaton_from_kleene_node(node, automaton)
-        else:
+        elif isinstance(node, PipeNode):
+            return Regex.__construct_automaton_from_pipe_node(node, automaton)
+        elif isinstance(node, ConcatNode):
             return Regex.__construct_automaton_from_concat_node(node, automaton)
+        else:
+            raise Exception(f'Unknown AST node {node}')
 
     @staticmethod
     def __construct_automaton_from_literal_node(node, automaton) -> Automaton:
@@ -191,5 +199,54 @@ class Regex:
         automaton.transitions = {(thompson_automaton_left.final_states.pop(), ""): {thompson_automaton_right.init_states.pop()}}
         automaton.transitions.update(thompson_automaton_left.transitions)
         automaton.transitions.update(thompson_automaton_right.transitions)
+
+        return automaton
+
+    @staticmethod
+    def __construct_automaton_from_pipe_node(node, automaton) -> Automaton:
+        """
+        Construct Automaton for pipe node
+        (i.e. Pipe(a, b) have equivalent automaton
+
+                 -->[1]--a-->[2]-->
+                |                  |
+            -->[0]                [5]-->
+                |                  |
+                 -->[3]--b-->[4]-->
+
+            Automaton(alphabet = {a, b}, init_states = {0}, final_states = {5}, states = {0, 1, 2, 3, 4, 5},
+                transitions = {(0, epsilon): 1 , (0, epsilon): 3, (1: a): 2, (3, b): 4, (2, epsilon): 5, (4, epsilon): 5})
+
+        :param node: Pipe node
+        :param automaton: Automaton
+        :return: Epsilon-NFA for pipe (e.g. a | b)
+        """
+        thompson_automaton_left = Regex.__construct_automaton_from_ast_nodes(node.left)
+        thompson_automaton_right = Regex.__construct_automaton_from_ast_nodes(node.right)
+
+        # know we do Thompson automaton on pipe `|`
+        automaton.alphabet = thompson_automaton_left.alphabet.union(thompson_automaton_right.alphabet)
+
+        start = Regex.state
+        automaton.init_states = {start}
+
+        Regex.state += 1
+        end = Regex.state
+
+        Regex.state += 1
+        automaton.final_states = {end}
+
+        automaton.states = thompson_automaton_left.states.union(thompson_automaton_right.states)
+        automaton.states = automaton.states.union({start, end})
+
+        automaton.transitions = {}
+        automaton.transitions.update(thompson_automaton_left.transitions)
+        automaton.transitions.update(thompson_automaton_right.transitions)
+
+        automaton.transitions.update({
+            (start, ""): {thompson_automaton_right.init_states.pop(), thompson_automaton_left.init_states.pop()},
+            (thompson_automaton_right.final_states.pop(), ""): {end},
+            (thompson_automaton_left.final_states.pop(), ""): {end},
+        })
 
         return automaton

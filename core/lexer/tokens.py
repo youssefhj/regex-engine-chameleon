@@ -5,8 +5,15 @@ class TokenType(Enum):
     """
     Enumeration for tokens type
     """
-    T_KLEENE_CLOSURE = '*'
+    # Rational Operations
+    # Unary OP
+    T_KLEENE_CLOSURE = '*' # Zero or plus of previous character
+    # Binary OP
+    T_PIPE = '|' # OR Op - One of the two operand
+
     T_LITERAL = 'literal'
+    T_EPSILON = ''
+
 
 class Token:
     """
