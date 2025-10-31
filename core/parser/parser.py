@@ -26,7 +26,7 @@ class Parser:
         # SUBEXP  -> `|` TERM SUBEXP | ε
         # TERM    -> FACTOR SUBTERM
         # SUBTERM -> * FACTOR SUBTERM | FACTOR SUBTERM | * | ε
-        # FACTOR  -> literal
+        # FACTOR  -> literal | `(` EXP `)`
         Parser.ll = len(tokens)
         if Parser.ll <= 0: raise Exception('ERROR: Empty tokens list')
 
@@ -130,7 +130,7 @@ class Parser:
                 return '*', KleeneNode(factor)
 
             return '*', ConcatNode(factor, sub_term)
-        elif Parser.__peek() is TokenType.T_LITERAL:
+        elif Parser.__peek() is TokenType.T_LITERAL or Parser.__peek() is TokenType.T_LEFT_PARENTHESES:
             factor = Parser.__factor()
             if factor is None:
                 raise Exception(f'ERROR_RULE_VIOLATED: we expect a literal at position {Parser.pos + 1}')
@@ -157,10 +157,24 @@ class Parser:
                  Otherwise None
         """
         token_val = Parser.tokens[Parser.pos].value
+        token_type = Parser.__peek()
 
-        if Parser.__peek() is TokenType.T_LITERAL:
+        if token_type is TokenType.T_LITERAL:
             Parser.__eat()
             return LiteralNode(token_val)
+        elif token_type is TokenType.T_LEFT_PARENTHESES:
+            Parser.__eat()
+
+            if Parser.pos >= Parser.ll:
+                raise Exception(f'ERROR_RULE_VIOLATED: we expect a literal at position {Parser.pos + 1}')
+
+            exp = Parser.__exp()
+
+            if Parser.__peek() is not TokenType.T_RIGHT_PARENTHESES:
+                raise Exception(f'ERROR_RULE_VIOLATED: we expect `)` at the end {Parser.pos + 1}')
+
+            Parser.__eat()
+            return exp
 
         return None
 

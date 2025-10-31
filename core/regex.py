@@ -85,21 +85,21 @@ class Regex:
         :return: Epsilon-NFA
         :raise: Exception for unknown AST node
         """
-        automaton = Automaton()
+        #automaton = Automaton()
 
         if isinstance(node, LiteralNode):
-            return Regex.__construct_automaton_from_literal_node(node, automaton)
+            return Regex.__construct_automaton_from_literal_node(node)
         elif isinstance(node, KleeneNode):
-            return Regex.__construct_automaton_from_kleene_node(node, automaton)
+            return Regex.__construct_automaton_from_kleene_node(node)
         elif isinstance(node, PipeNode):
-            return Regex.__construct_automaton_from_pipe_node(node, automaton)
+            return Regex.__construct_automaton_from_pipe_node(node)
         elif isinstance(node, ConcatNode):
-            return Regex.__construct_automaton_from_concat_node(node, automaton)
+            return Regex.__construct_automaton_from_concat_node(node)
         else:
             raise Exception(f'Unknown AST node {node}')
 
     @staticmethod
-    def __construct_automaton_from_literal_node(node, automaton) -> Automaton:
+    def __construct_automaton_from_literal_node(node) -> Automaton:
         """
         Construct Automaton for literal node
         (i.e. literal(a) have equivalent automaton
@@ -112,6 +112,8 @@ class Regex:
         :param automaton: Automaton
         :return: Epsilon-NFA for node (e.g. a)
         """
+        automaton = Automaton()
+
         start = Regex.state
         Regex.state += 1
         end = Regex.state
@@ -129,7 +131,7 @@ class Regex:
         return automaton
 
     @staticmethod
-    def __construct_automaton_from_kleene_node(node, automaton) -> Automaton:
+    def __construct_automaton_from_kleene_node(node) -> Automaton:
         """
         Construct Automaton for Kleene node
          (i.e. kleene(a) have equivalent automaton
@@ -147,33 +149,33 @@ class Regex:
         :param automaton: Automaton
         :return: Epsilon-NFA for Kleene (e.g. a*)
         """
+        automaton = Automaton()
+
         start = Regex.state
-
-        Regex.state += 1
-        first = Regex.state
-
-        Regex.state += 1
-        second = Regex.state
 
         Regex.state += 1
         end = Regex.state
 
         Regex.state += 1
 
-        automaton.alphabet = {node.literal.literal}
+        inner_automaton = Regex.__construct_automaton_from_ast_nodes(node.literal)
+        inner_automaton_start_state = inner_automaton.init_states.pop()
+        inner_automaton_final_state = inner_automaton.final_states.pop()
+
+        automaton.alphabet = inner_automaton.alphabet
         automaton.init_states = {start}
         automaton.final_states = {end}
-        automaton.states = {start, first, second, end}
+        automaton.states = {start, end}.union(inner_automaton.states)
         automaton.transitions = {
-            (start, ''): {first, end},
-            (first, node.literal.literal):  {second},
-            (second, ''): {first, end},
+            (start, ''): {inner_automaton_start_state, end},
+            (inner_automaton_final_state, ''): {inner_automaton_start_state, end}
         }
+        automaton.transitions.update(inner_automaton.transitions)
 
         return automaton
 
     @staticmethod
-    def __construct_automaton_from_concat_node(node, automaton) -> Automaton:
+    def __construct_automaton_from_concat_node(node) -> Automaton:
         """
         Construct Automaton for concatenation node
          (i.e. Concat(a, b) have equivalent automaton
@@ -187,6 +189,8 @@ class Regex:
         :param automaton: Automaton
         :return: Epsilon-NFA for concatenation (e.g. a.b)
         """
+        automaton = Automaton()
+
         thompson_automaton_left = Regex.__construct_automaton_from_ast_nodes(node.left)
         thompson_automaton_right = Regex.__construct_automaton_from_ast_nodes(node.right)
 
@@ -203,7 +207,7 @@ class Regex:
         return automaton
 
     @staticmethod
-    def __construct_automaton_from_pipe_node(node, automaton) -> Automaton:
+    def __construct_automaton_from_pipe_node(node) -> Automaton:
         """
         Construct Automaton for pipe node
         (i.e. Pipe(a, b) have equivalent automaton
@@ -221,6 +225,8 @@ class Regex:
         :param automaton: Automaton
         :return: Epsilon-NFA for pipe (e.g. a | b)
         """
+        automaton = Automaton()
+
         thompson_automaton_left = Regex.__construct_automaton_from_ast_nodes(node.left)
         thompson_automaton_right = Regex.__construct_automaton_from_ast_nodes(node.right)
 

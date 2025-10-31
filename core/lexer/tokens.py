@@ -14,6 +14,12 @@ class TokenType(Enum):
     T_LITERAL = 'literal'
     T_EPSILON = ''
 
+    # Grouping symbols
+    T_LEFT_PARENTHESES = '('
+    T_RIGHT_PARENTHESES = ')'
+
+    # Escape symbol
+    T_ESCAPE = '\\'
 
 class Token:
     """

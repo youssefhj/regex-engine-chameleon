@@ -217,10 +217,11 @@ class Automaton:
         if self.is_epsilon_NFA():
             self.eNFA_to_NFA()
 
+        #print(automaton)
         if self.is_NFA():
             new_transitions = {} # This the transitions for the automaton after determinization
             new_states = set() # The new states for the new automaton
-            new_final_states = set() # The new final state for the new automaton
+            new_final_states = set() # The new final states for the new automaton
             states_already_processed = [] # Track the states that already processed
             states_needs_processing = [self.init_states]
             name_mapper = {} # Help to give new name to state after determinization
@@ -236,7 +237,6 @@ class Automaton:
                     continue
 
                 result_states =  self.__get_transitions_of_state(state)
-                print(result_states)
                 if len(result_states) > 0:
                     states_already_processed.append(state)
 
@@ -261,9 +261,10 @@ class Automaton:
                         # Here we are sure that the state has transitions to other ones
                         new_transitions.update({s: result_states[s]})
 
-            self.transitions = {}
+            self.init_states = {name_mapper[(self.init_states.pop(),)]}
             self.final_states = new_final_states
             self.states = new_states
+            self.transitions = {}
 
             # We simply map each new state with its corresponding number
             # Just to simplify thing, its the same automaton it recognized the same language as previous

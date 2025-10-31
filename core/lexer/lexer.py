@@ -20,6 +20,10 @@ class Lexer:
                 tokens.append(Token(TokenType.T_KLEENE_CLOSURE, '*'))
             elif c == '|':
                 tokens.append(Token(TokenType.T_PIPE, '|'))
+            elif c == '(':
+                tokens.append(Token(TokenType.T_LEFT_PARENTHESES, '('))
+            elif c == ')':
+                tokens.append(Token(TokenType.T_RIGHT_PARENTHESES, ')'))
             else:
                 tokens.append(Token(TokenType.T_LITERAL, c))
 
