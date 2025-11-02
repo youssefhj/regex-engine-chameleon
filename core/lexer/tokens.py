@@ -19,7 +19,7 @@ class TokenType(Enum):
     T_RIGHT_PARENTHESES = ')'
 
     # Escape symbol
-    T_ESCAPE = '\\'
+    T_ESCAPE = '`'
 
 class Token:
     """
@@ -39,6 +39,6 @@ class Token:
         """
         Helps in debugging
 
-        :return: Formated String
+        :return Formated String
         """
-        return f"Token({self.type}, {self.value})"
+        return f"Token({self.type}, '{self.value}')"

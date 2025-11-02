@@ -28,7 +28,7 @@ class Automaton:
         """
         Checks the existing of epsilon transition on the given automaton
 
-        :return: True if the automaton is an epsilon-NFA
+        :return True if the automaton is an epsilon-NFA
                  False otherwise
         """
         for _, symbol in self.transitions:
@@ -43,7 +43,7 @@ class Automaton:
         with the same symbol from the same source state on the given automaton
         (i.e. (state_i, `symbol`, state_j) and (state_i, `symbol`, state_k))
 
-        :return: True if the automaton is an NFA
+        :return True if the automaton is an NFA
                  False otherwise
         """
         if self.is_epsilon_NFA() or len(self.init_states) > 1:
@@ -60,7 +60,7 @@ class Automaton:
         Checks if the given automaton is deterministic
         (i.e. foreach state there is one transition with symbol_X to other ones)
 
-        :return: True if the automaton is an NFA
+        :return True if the automaton is an NFA
                  False otherwise
         """
         return not self.is_NFA()
@@ -70,12 +70,53 @@ class Automaton:
         Eliminate all transition with
         epsilon symbol (i.e. delete(state_i, epsilon, state_j))
 
-        :return: None
+        :return None
         """
         states_to_delete = list(filter(lambda symbol: symbol[1] == '', self.transitions))
 
         for s in states_to_delete:
             del self.transitions[s]
+
+    def __get_epsilon_closure_of_state(self, state: str | int, states_already_seen: list) -> set:
+        """
+        Takes a certain state then it returns
+        all states possible that can be reached from state with epsilon* transition
+        and keeps track all visited ones so we can avoid circular transitions
+        (i.e. epsilon* closure)
+
+        :param state: Some state
+        :param states_already_seen: It's a list that track the state already visited
+        :return Set for all epsilon* transition from state `state`
+        :raise Exception in case state not existing in the automaton definition
+        """
+        if state not in self.states:
+            raise Exception(f'{state} not existing in definition of automaton')
+
+        return self.__go_recursion_epsilon_closure_of_state(state, states_already_seen)
+
+    def __go_recursion_epsilon_closure_of_state(self, state: str | int, states_already_seen: list) -> set:
+        """
+        It's a helper method for `epsilon_closure_of_state` method
+        Goes recursion over states from state until it reach a dead ends
+        then it returns all states that can be reached with epsilon* transition
+
+        :param state: Some state
+        :param states_already_seen: It's a list that track the state already visited
+        :return Set for all epsilon* transition from state `state`
+        """
+        # All states that can be reached from `state` with epsilon* transition (i.e state --epsilon*--> ??)
+        all_states = set()
+        all_states.add(state)
+        states_already_seen.append(state)
+
+        if self.transitions.get((state, '')) is not None:
+            for s in self.transitions[(state, '')]:
+                if s in states_already_seen:
+                    continue
+
+                all_states.update(self.__get_epsilon_closure_of_state(s, states_already_seen))
+
+        return all_states
 
     def epsilon_closure_of_state(self, state: str | int) -> set:
         """
@@ -84,33 +125,14 @@ class Automaton:
         (i.e. epsilon* closure)
 
         :param state: Some state
-        :return: Set for all epsilon* transition from state `state`
-        :raise: Exception in case state not existing in the automaton definition
+        :return Set for all epsilon* transition from state `state`
+        :raise Exception in case state not existing in the automaton definition
         """
+        states_already_seen = []
         if state not in self.states:
             raise Exception(f'{state} not existing in definition of automaton')
 
-        return self.__go_recursion_epsilon_closure_of_state(state)
-
-    def __go_recursion_epsilon_closure_of_state(self, state: str | int) -> set:
-        """
-        It's a helper method for `epsilon_closure_of_state` method
-        Goes recursion over states from state until it reach a dead ends
-        then it returns all states that can be reached with epsilon* transition
-
-        :param state: Some state
-        :return: Set for all epsilon* transition from state `state`
-        """
-        # All states that can be reached from `state` with epsilon* transition (i.e state --epsilon*--> ??)
-        all_states = set()
-        all_states.add(state)
-
-        if self.transitions.get((state, '')) is not None:
-            for s in self.transitions[(state, '')]:
-                if state != s:
-                    all_states.update(self.epsilon_closure_of_state(s))
-
-        return all_states
+        return self.__get_epsilon_closure_of_state(state, states_already_seen)
 
     def __set_transitions_for_state(self, target_state: str | int, dependency_state: str | int) -> dict:
         """
@@ -119,7 +141,7 @@ class Automaton:
 
         :param target_state: State that need transitions changes
         :param dependency_state: A State that target state depends on
-        :return: Old transitions + New transitions for target_state
+        :return Old transitions + New transitions for target_state
         """
         # Get all transitions of the dependency state
         dependency_state_transitions = list(filter(lambda state_and_symbol: state_and_symbol[0] == dependency_state, self.transitions))
@@ -148,8 +170,8 @@ class Automaton:
         Get all direct states for the given state
 
         :param state: Set of states
-        :return: Dictionary of transitions with all possible symbol in alphabet
-        :raise: Exception if state is a None value
+        :return Dictionary of transitions with all possible symbol in alphabet
+        :raise Exception if state is a None value
         """
         if state is None:
             raise Exception('Error: None value')
@@ -172,7 +194,7 @@ class Automaton:
         """
         Convert automaton from epsilon-NFA to NFA
 
-        :return: New Automaton
+        :return New Automaton
         """
         if self.is_epsilon_NFA():
             epsilon_closure_of_all_states = {}
@@ -212,7 +234,7 @@ class Automaton:
         """
         Convert automaton from NFA to DFA
 
-        :return: New Automaton
+        :return New Automaton
         """
         if self.is_epsilon_NFA():
             self.eNFA_to_NFA()
@@ -277,6 +299,6 @@ class Automaton:
         """
         Helps in debugging
 
-        :return: Formated String
+        :return Formated String
         """
         return f"Automaton(alphabet={self.alphabet}, init_states={self.init_states}, final_states{self.final_states}, states={self.states}, transitions={self.transitions})"

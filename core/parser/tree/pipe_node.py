@@ -16,6 +16,6 @@ class PipeNode:
         """
         Helps in debugging
 
-        :return: Formated String
+        :return Formated String
         """
         return f"PipeNode({self.left}, {self.right})"

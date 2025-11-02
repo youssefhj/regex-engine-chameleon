@@ -14,6 +14,6 @@ class LiteralNode:
         """
         Helps in debugging
 
-        :return: Formated String
+        :return Formated String
         """
-        return f"LiteralNode({self.literal})"
+        return f"LiteralNode('{self.literal}')"

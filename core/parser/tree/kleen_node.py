@@ -14,6 +14,6 @@ class KleeneNode:
         """
         Helps in debugging
 
-        :return: Formated String
+        :return Formated String
         """
         return f"KleeneNode({self.literal})"

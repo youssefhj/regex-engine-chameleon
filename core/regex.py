@@ -21,7 +21,7 @@ class Regex:
 
         :param literal: A text
         :param regex: Regular Expression
-        :return: True if the literal match the regex, False otherwise
+        :return True if the literal match the regex, False otherwise
         """
 
         automaton_DFA = Regex.__construct_automaton(regex) # Make a deterministic state machine
@@ -51,7 +51,7 @@ class Regex:
         :param transitions: Set of transitions
         :param state: A state
         :param symbol: Symbol from alphabet
-        :return: Set of state
+        :return Set of state
         """
         return copy(transitions[(state, symbol)])
 
@@ -61,7 +61,7 @@ class Regex:
         Construct a deterministic automaton based on regex
 
         :param regex: Pattern
-        :return: Automaton
+        :return Automaton
         """
         # Lexing phase of the regex expression
         tokens = Lexer.tokenize(regex)
@@ -82,8 +82,8 @@ class Regex:
         Construct automaton base on Abstract Syntax Tree
 
         :param node: Node of the tree
-        :return: Epsilon-NFA
-        :raise: Exception for unknown AST node
+        :return Epsilon-NFA
+        :raise Exception for unknown AST node
         """
         #automaton = Automaton()
 
@@ -109,8 +109,7 @@ class Regex:
             Automaton(alphabet = {a}, init_states = {0}, final_states = {1}, states = {0, 1}, transitions = {(0, a): 1})
 
         :param node: Literal node
-        :param automaton: Automaton
-        :return: Epsilon-NFA for node (e.g. a)
+        :return Epsilon-NFA for node (e.g. a)
         """
         automaton = Automaton()
 
@@ -146,8 +145,7 @@ class Regex:
                 transitions = {(0, epsilon): 1, (1, a): 2, (2, epsilon): 1, (2, epsilon): 3, (0, epsilon): 3})
 
         :param node: Kleene node
-        :param automaton: Automaton
-        :return: Epsilon-NFA for Kleene (e.g. a*)
+        :return Epsilon-NFA for Kleene (e.g. a*)
         """
         automaton = Automaton()
 
@@ -186,8 +184,7 @@ class Regex:
                 transitions = {(0, a): 1 , (1, epsilon): 2, (2: b): 3})
 
         :param node: Concat node
-        :param automaton: Automaton
-        :return: Epsilon-NFA for concatenation (e.g. a.b)
+        :return Epsilon-NFA for concatenation (e.g. a.b)
         """
         automaton = Automaton()
 
@@ -222,8 +219,7 @@ class Regex:
                 transitions = {(0, epsilon): 1 , (0, epsilon): 3, (1: a): 2, (3, b): 4, (2, epsilon): 5, (4, epsilon): 5})
 
         :param node: Pipe node
-        :param automaton: Automaton
-        :return: Epsilon-NFA for pipe (e.g. a | b)
+        :return Epsilon-NFA for pipe (e.g. a | b)
         """
         automaton = Automaton()
 

@@ -16,6 +16,6 @@ class ConcatNode:
         """
         Helps in debugging
 
-        :return: Formated String
+        :return Formated String
         """
         return f"ConcatNode({self.left}, {self.right})"
