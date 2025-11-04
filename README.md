@@ -39,7 +39,7 @@ This open-source project includes the following features:<br>
 🧩 Extensible — easy to add new regex operators<br>
 📚 Educational and well-documented — clear structure for learning regex internals<br>
 
-## ⚙️ Architecture Overview
+## ⚙ Architecture Overview
 Chameleon’s architecture consists of two main modules, each with a distinct role.
 - The **Front-Module** includes the lexer and parser responsible for analyzing and interpreting regex patterns.
 - The **Back-Module** contains the builder that constructs the internal regex matching engine.
@@ -52,7 +52,7 @@ Chameleon’s architecture consists of two main modules, each with a distinct ro
 | **Parser**             | Tokens | Abstract Syntax Tree (AST) | Parses the sequence of tokens and builds the corresponding AST structure. |
 | **State Machine Builder** | AST | Automaton | Converts the AST into a Thompson NFA, then transforms it into an NFA, and finally into a deterministic finite automaton (DFA). |
 
-## 🛠️ Usage
+## 🔨 Usage
 After cloning the repository to your local machine, you can experiment with the modules individually — performing lexing, parsing, or directly using the regex engine to match patterns.<br>
 ```python
 from core.lexer.lexer import Lexer
