@@ -11,4 +11,13 @@ for c in test_cases:
     print(Parser.parse(tokens))
     print('---------------------------------------')
 
-print(Regex.match('b','aa*(b*)a|b'))
+print(Regex.match('aabaa','ab*(b*)*a(b*(baa))'))
+
+tokens = Lexer.tokenize('a*b|c')
+print(tokens)
+
+print(Parser.parse(tokens))
+
+# Direct matching using the Regex module
+truth = Regex.match('aaab', 'a*b|c')
+print("Matching" if truth else "Unmatched")
