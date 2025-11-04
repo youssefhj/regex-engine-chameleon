@@ -28,7 +28,7 @@ Engineered for speed, clarity, and educational insight, Chameleon offers a clean
 > `   # Escape character (treats special symbols literally)
 > ```
 
-> Possible enhancements: `+`, `?`, `{n,m}`, and character classes `[]`
+> **Possible enhancements:** `+`, `?`, `{n,m}`, and character classes `[]`
 
 Built for learning, experimentation, and embedding in other projects.
 
