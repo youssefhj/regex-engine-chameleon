@@ -53,7 +53,40 @@ Chameleon’s architecture consists of two main modules, each with a distinct ro
 | **State Machine Builder** | AST | Automaton | Converts the AST into a Thompson NFA, then transforms it into an NFA, and finally into a deterministic finite automaton (DFA). |
 
 ## 🔨 Usage
-After cloning the repository to your local machine, you can experiment with the modules individually — performing lexing, parsing, or directly using the regex engine to match patterns.<br>
+Chameleon can be used in two ways:
+1. **Command-Line Interface (CLI)** — for quick testing directly from the terminal.
+
+```bash
+# Usage: python chameleon <regex_pattern> <string_to_match>
+python chameleon "a*b|c" "aaab"
+```
+```markdown
+Output:
+Chameleon Regex Engine — CLI Mode
+
+Pattern: a*b|c
+Text: aaab
+----------------------------------------
+Match!
+----------------------------------------
+```
+2. **Programmatic Usage**
+Import Chameleon into your Python projects.<br>
+
+**Use `Regex.match` for direct matching:**
+```python
+from core.regex import Regex
+
+# Direct matching using the Regex module
+truth = Regex.match('aaab', 'a*b|c')
+print("Matching" if truth else "Unmatched")
+```
+```markdown
+Output:
+>> Matching
+```
+
+**Use `Lexer` and `Parser` modules individually for deeper inspection:**
 ```python
 from core.lexer.lexer import Lexer
 from core.parser.parser import Parser
@@ -70,18 +103,6 @@ print(tokens)
 Output: 
 >> [Token(TokenType.T_LITERAL, 'a'), Token(TokenType.T_KLEENE_CLOSURE, '*'), Token(TokenType.T_LITERAL, 'b'), Token(TokenType.T_PIPE, '|'), Token(TokenType.T_LITERAL, 'c')]
 >> PipeNode(ConcatNode(KleeneNode(LiteralNode('a')), LiteralNode('b')), LiteralNode('c'))
-```
-
-```python
-from core.regex import Regex
-
-# Direct matching using the Regex module
-truth = Regex.match('aaab', 'a*b|c')
-print("Matching" if truth else "Unmatched")
-```
-```markdown
-Output:
->> Matching
 ```
 
 ## 🤝 Contributing
