@@ -57,8 +57,8 @@ Chameleon can be used in two ways:
 1. **Command-Line Interface (CLI)** — for quick testing directly from the terminal.
 
 ```bash
-# Usage: python chameleon <regex_pattern> <string_to_match>
-python chameleon "a*b|c" "aaab"
+# Usage: python chameleon.py <regex_pattern> <string_to_match>
+python chameleon.py "a*b|c" "aaab"
 ```
 ```markdown
 Output:
