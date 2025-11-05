@@ -106,7 +106,6 @@ Output:
 ```
 
 ## 🤝 Contributing
-
 We welcome contributions, suggestions, and feedback! Whether it’s fixing bugs, implementing new features, or improving documentation, your help is appreciated. Follow these steps to get started:
 
 1. Fork the repository
