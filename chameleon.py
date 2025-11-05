@@ -3,16 +3,16 @@ Chameleon Regex Engine — CLI Mode
 ---------------------------------
 
 This script allows you to quickly test regular expressions using
-the Chameleon regex engine directly from the command line.
+the Chameleon regex engine directly from the command line
 
 Usage:
     python chameleon.py <pattern> <text>
 
 Arguments:
     pattern : str
-        The regular expression pattern you want to match.
+        The regular expression pattern you want to match
     text : str
-        The string to test against the regex pattern.
+        The string to test against the regex pattern
 """
 import sys
 from core.regex import Regex
